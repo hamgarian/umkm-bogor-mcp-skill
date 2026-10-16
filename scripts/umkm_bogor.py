@@ -7,7 +7,7 @@
   umkm_bogor.py get --id 12345
 Data disimpan 24 jam di $UMKM_CACHE (default ~/.cache/umkm-bogor); --refresh memaksa unduh ulang.
 """
-import argparse, json, re, sys, urllib.request
+import argparse, json, os, re, sys, time, urllib.request
 
 BASE = "https://api-solusi.kotabogor.go.id/api"
 CACHE_DIR = os.environ.get("UMKM_CACHE", os.path.expanduser("~/.cache/umkm-bogor"))
@@ -15,8 +15,23 @@ CACHE_DIR = os.environ.get("UMKM_CACHE", os.path.expanduser("~/.cache/umkm-bogor
 JUNK_WORDS = {"none", "test", "tes", "tes12", "x", "zxc", "-", "warung sembako", "warung makan"}
 
 
-def fetch(path):
-    return json.loads(urllib.request.urlopen(f"{BASE}/{path}", timeout=90).read().decode())
+def fetch(path, cache=None, max_age_h=24):
+    if cache and max_age_h > 0 and os.path.exists(cache) and time.time() - os.path.getmtime(cache) < max_age_h * 3600:
+        with open(cache) as fh:
+            return json.load(fh)
+    data = json.loads(urllib.request.urlopen(f"{BASE}/{path}", timeout=90).read().decode())
+    if cache and os.path.dirname(cache):
+        os.makedirs(os.path.dirname(cache), exist_ok=True)
+        with open(cache, "w") as fh:
+            json.dump(data, fh, ensure_ascii=False)
+    return data
+
+
+def passes_floor(tk, om, min_workers, min_omset):
+    """OR antar ambang; nilai 0 berarti "tidak diset", bukan "terima semua"."""
+    if not min_workers and not min_omset:
+        return True
+    return bool((min_workers and tk >= min_workers) or (min_omset and om >= min_omset))
 
 
 def num(v):
@@ -49,7 +64,7 @@ def candidates(rows, kec_map, min_workers=0, min_omset=0):
         if len(str(x.get("tdu_alamat") or "").strip()) < 12:
             continue
         tk, om = num(x.get("tdu_jumlah_tenaga_kerja")), num(x.get("tdu_omset_perbulan"))
-        if tk < min_workers and om < min_omset:
+        if not passes_floor(tk, om, min_workers, min_omset):
             continue
         out.append({
             "id": x.get("tdu_id"), "name": str(name).strip(),
@@ -92,9 +107,13 @@ def get(rows, needle):
     sys.exit(f"tidak ada UMKM dengan id {needle} di hasil filter (coba --min-workers 0 --min-omset 0)")
 
 
-def load():
-    kec_map = {x["kode_kec"]: x["kecamatan"] for x in fetch("umkm_table_portal") if x.get("kode_kec")}
-    return fetch("umkm_portal"), kec_map
+def load(refresh=False):
+    age = 0 if refresh else 24
+    kec_map = {x["kode_kec"]: x["kecamatan"]
+               for x in fetch("umkm_table_portal", os.path.join(CACHE_DIR, "kec.json"), age)
+               if x.get("kode_kec")}
+    rows = fetch("umkm_portal", os.path.join(CACHE_DIR, "umkm.json"), age)
+    return rows, kec_map
 
 
 def main(argv=None):
@@ -109,13 +128,35 @@ def main(argv=None):
     s.add_argument("--sort", choices=["default", "workers", "omset", "name"], default="default")
     s.add_argument("--limit", type=int, default=20)
     s.add_argument("--json", dest="json_out")
+    s.add_argument("--refresh", action="store_true")
     s.add_argument("--quiet", action="store_true")
 
+    st = sub.add_parser("stats", help="hitungan per kecamatan")
+    st.add_argument("--min-workers", type=int, default=3)
+    st.add_argument("--min-omset", type=int, default=5_000_000)
+    st.add_argument("--refresh", action="store_true")
 
+    g = sub.add_parser("get", help="satu record berdasarkan id")
+    g.add_argument("--id", required=True)
+    g.add_argument("--min-workers", type=int, default=0)
+    g.add_argument("--min-omset", type=int, default=0)
+    g.add_argument("--refresh", action="store_true")
 
     a = ap.parse_args(argv)
-    rows, kec_map = load()
+    rows, kec_map = load(getattr(a, "refresh", False))
     cands = candidates(rows, kec_map, a.min_workers, a.min_omset)
+
+    if a.cmd == "stats":
+        st_ = stats(cands, len(rows))
+        print(f"records: {st_['records']} | kandidat: {st_['candidates']} "
+              f"(>= {a.min_workers} tenaga kerja atau >= {a.min_omset} omset)")
+        for k, v in st_["per_kecamatan"].items():
+            print(f"  {k}: {v}")
+        return 0
+
+    if a.cmd == "get":
+        print(json.dumps(get(cands, a.id), indent=1, ensure_ascii=False))
+        return 0
 
     if a.grep:
         cands = grep(cands, a.grep)

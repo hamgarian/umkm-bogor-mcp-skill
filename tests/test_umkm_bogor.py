@@ -74,5 +74,48 @@ class FilterTests(unittest.TestCase):
         self.assertEqual(len(by_workers[:2]), 2)
 
 
+class CacheTests(unittest.TestCase):
+    def test_cache_prevents_second_fetch_and_refresh_forces_one(self):
+        calls = {"n": 0}
+        payload = [{"kode_kec": "32.71.01", "kecamatan": "Bogor Selatan"}]
+
+        class FakeUrl:
+            def __init__(self, data): self.data = data
+            def read(self): return json.dumps(self.data).encode()
+
+        def fake_open(url, timeout=0):
+            calls["n"] += 1
+            return FakeUrl(payload)
+
+        orig = U.urllib.request.urlopen
+        U.urllib.request.urlopen = fake_open
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                cache = os.path.join(d, "rows.json")
+                U.fetch("x", cache, 24)
+                U.fetch("x", cache, 24)
+                self.assertEqual(calls["n"], 1)
+                U.fetch("x", cache, 0)
+                self.assertEqual(calls["n"], 2)
+        finally:
+            U.urllib.request.urlopen = orig
+
+
+class StatsAndGetTests(unittest.TestCase):
+    def test_stats_counts_sum_to_candidates(self):
+        cands = U.candidates(ROWS, KEC, 0, 0)
+        stats = U.stats(cands, len(ROWS))
+        self.assertEqual(stats["records"], len(ROWS))
+        self.assertEqual(stats["candidates"], len(cands))
+        self.assertEqual(sum(stats["per_kecamatan"].values()), len(cands))
+
+    def test_get_by_id(self):
+        cands = U.candidates(ROWS, KEC, 0, 0)
+        self.assertEqual(U.get(cands, "1")["name"], "Kopi Nusantara")
+        with self.assertRaises(SystemExit) as ctx:
+            U.get(cands, "999")
+        self.assertNotEqual(ctx.exception.code, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
