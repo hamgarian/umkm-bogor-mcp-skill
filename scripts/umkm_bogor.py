@@ -7,7 +7,7 @@
   umkm_bogor.py get --id 12345
 Data disimpan 24 jam di $UMKM_CACHE (default ~/.cache/umkm-bogor); --refresh memaksa unduh ulang.
 """
-import argparse, json, os, re, sys, time, urllib.request
+import argparse, csv, json, os, re, sys, time, urllib.request
 
 BASE = "https://api-solusi.kotabogor.go.id/api"
 CACHE_DIR = os.environ.get("UMKM_CACHE", os.path.expanduser("~/.cache/umkm-bogor"))
@@ -128,6 +128,7 @@ def main(argv=None):
     s.add_argument("--sort", choices=["default", "workers", "omset", "name"], default="default")
     s.add_argument("--limit", type=int, default=20)
     s.add_argument("--json", dest="json_out")
+    s.add_argument("--csv", dest="csv_out")
     s.add_argument("--refresh", action="store_true")
     s.add_argument("--quiet", action="store_true")
 
@@ -165,6 +166,11 @@ def main(argv=None):
     cands = sorted_rows(cands, a.sort)
     if a.json_out:
         json.dump(cands, open(a.json_out, "w"), ensure_ascii=False, indent=1)
+    if a.csv_out:
+        with open(a.csv_out, "w", newline="") as fh:
+            w = csv.DictWriter(fh, fieldnames=list(cands[0]) if cands else ["id"])
+            w.writeheader()
+            w.writerows(cands)
     if not a.quiet:
         print(f"{len(cands)} kandidat")
         for r in cands[:a.limit]:
