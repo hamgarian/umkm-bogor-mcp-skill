@@ -117,5 +117,118 @@ class StatsAndGetTests(unittest.TestCase):
         self.assertNotEqual(ctx.exception.code, 0)
 
 
+class McpTests(unittest.TestCase):
+    def setUp(self):
+        self.rows = U.candidates(ROWS, KEC, 0, 0)
+
+    def test_initialize_and_tools_list(self):
+        init = M.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}, self.rows)
+        self.assertEqual(init["result"]["serverInfo"]["name"], "umkm-bogor")
+        listed = M.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, self.rows)
+        names = {t["name"] for t in listed["result"]["tools"]}
+        self.assertEqual(names, {"search_umkm", "stats_umkm", "get_umkm"})
+
+    def test_tools_call_search(self):
+        res = M.handle({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
+                        "params": {"name": "search_umkm", "arguments": {"grep": "batik"}}}, self.rows)
+        payload = json.loads(res["result"]["content"][0]["text"])
+        self.assertEqual([r["name"] for r in payload["rows"]], ["Batik Sari"])
+
+    def test_unknown_tool_is_jsonrpc_error(self):
+        res = M.handle({"jsonrpc": "2.0", "id": 4, "method": "tools/call",
+                        "params": {"name": "nope", "arguments": {}}}, self.rows)
+        self.assertIn("error", res)
+
+
+class CoverageGapTests(unittest.TestCase):
+    """Cases the first review flagged as untested (SPEC items 1, 4, 5, 10)."""
+
+    def test_empty_product_and_short_address_dropped(self):
+        rows = [row(tdu_id=11, tdu_keterangan_produk=""),
+                row(tdu_id=12, tdu_alamat="Jl. A", tdu_koordinat="-6.5,106.8")]
+        self.assertEqual(U.candidates(rows, KEC, 0, 0), [])
+
+    def test_workers_tiebreak_uses_omset(self):
+        rows = [row(tdu_id=21, tdu_nama="Tie A", tdu_jumlah_tenaga_kerja="4", tdu_omset_perbulan="1000000"),
+                row(tdu_id=22, tdu_nama="Tie B", tdu_jumlah_tenaga_kerja="4", tdu_omset_perbulan="9000000")]
+        order = [r["name"] for r in U.sorted_rows(U.candidates(rows, KEC, 0, 0), "default")]
+        self.assertEqual(order[0], "Tie B")
+
+    def test_cli_limit_and_refresh_flag(self):
+        import io
+        from contextlib import redirect_stdout
+        orig_load = U.load
+        U.load = lambda refresh=False: (ROWS, KEC)
+        try:
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                U.main(["search", "--limit", "2", "--quiet"])
+            self.assertEqual(buf.getvalue().strip(), "")   # quiet prints nothing
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                U.main(["search", "--limit", "2"])
+            self.assertEqual(len([l for l in buf.getvalue().splitlines() if l.startswith("- ")]), 2)
+        finally:
+            U.load = orig_load
+
+    def test_mcp_thresholds_and_real_totals(self):
+        res = M.handle({"jsonrpc": "2.0", "id": 9, "method": "tools/call",
+                        "params": {"name": "search_umkm",
+                                   "arguments": {"grep": "batik", "min_workers": 99}}}, self._rows())
+        payload = json.loads(res["result"]["content"][0]["text"])
+        self.assertEqual(payload["count"], 0)
+        stats = M.handle({"jsonrpc": "2.0", "id": 10, "method": "tools/call",
+                          "params": {"name": "stats_umkm", "arguments": {}}}, self._rows(), len(ROWS))
+        data = json.loads(stats["result"]["content"][0]["text"])
+        self.assertEqual(data["records"], len(ROWS))
+        self.assertLess(data["candidates"], data["records"])
+
+    def _rows(self):
+        return U.candidates(ROWS, KEC, 0, 0)
+
+
+class ReviewGapTests(unittest.TestCase):
+    """Product-only grep, zero-threshold semantics, MCP stats defaults, secret/path scan."""
+
+    def test_grep_matches_product_only(self):
+        rows = [row(tdu_id=31, tdu_nama="Toko Sinar", tdu_keterangan_produk="Anyaman bambu khas Bogor",
+                    tdu_alamat="Jl. Raya Dramaga No. 7, Bogor")]
+        hit = U.grep(U.candidates(rows, KEC, 0, 0), "anyaman")
+        self.assertEqual([r["name"] for r in hit], ["Toko Sinar"])
+
+    def test_zero_threshold_means_unset(self):
+        rows = [row(tdu_id=41, tdu_nama="Kecil Sekali", tdu_jumlah_tenaga_kerja="0",
+                    tdu_omset_perbulan=None)]
+        self.assertEqual(len(U.candidates(rows, KEC, 0, 0)), 1)          # 0/0 = no floor
+        self.assertEqual(len(U.candidates(rows, KEC, 0, 5_000_000)), 0)  # omset floor only
+        self.assertEqual(len(U.candidates(rows, KEC, 3, 0)), 0)          # workers floor only
+        self.assertTrue(U.passes_floor(30, 0, 20, 0))
+        self.assertFalse(U.passes_floor(3, 10_000_000, 20, 0))           # omset must not rescue
+
+    def test_mcp_stats_uses_documented_defaults(self):
+        res = M.handle({"jsonrpc": "2.0", "id": 11, "method": "tools/call",
+                        "params": {"name": "stats_umkm", "arguments": {}}}, self._rows(), len(ROWS))
+        data = json.loads(res["result"]["content"][0]["text"])
+        self.assertEqual(data["min_workers"], 3)
+        self.assertEqual(data["min_omset"], 5_000_000)
+        self.assertEqual(data["records"], len(ROWS))
+        self.assertLessEqual(data["candidates"], len(ROWS))
+
+    def test_package_has_no_secrets_or_user_paths(self):
+        import pathlib
+        root = pathlib.Path(__file__).resolve().parent.parent
+        offenders = []
+        for path in root.rglob("*"):
+            if path.suffix in (".py", ".md") and path.is_file() and not path.name.startswith("test_"):
+                text = path.read_text(errors="ignore")
+                for needle in ("/root/", "/home/", "api_key=", "password=", "Bearer "):
+                    if needle in text:
+                        offenders.append(f"{path.name}:{needle}")
+        self.assertEqual(offenders, [])
+
+    def _rows(self):
+        return U.candidates(ROWS, KEC, 0, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
