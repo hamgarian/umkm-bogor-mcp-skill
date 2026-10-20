@@ -21,7 +21,7 @@ koordinat. Yang tidak ada di data: nomor HP, IG, atau website — itu tetap dica
 Cocok untuk: cari supplier, cari mitra UMKM untuk proyek kampus, riset pasar, atau cari kompetitor
 di satu kecamatan.
 
-![Demo: cari UMKM kopi dan kue lewat CLI](assets/demo.gif)
+![Demo: pasang MCP di Claude Code, lalu minta agent cari UMKM kopi](assets/demo.gif)
 
 ```console
 $ python3 scripts/umkm_bogor.py search --grep "kopi|kue" --limit 5
@@ -35,6 +35,92 @@ $ python3 scripts/umkm_bogor.py search --grep "kopi|kue" --limit 5
 
 (53 = total yang cocok; `--limit 5` hanya memotong yang dicetak. Deskripsi produk dipotong di 70
 karakter, jadi baris seperti `Teh t` memang terpotong oleh tool, bukan data rusak.)
+
+## Tool yang dipakai AI
+
+Dipasang sebagai MCP, agent dapat tiga tool. Ini yang dipanggilnya saat kamu bertanya biasa.
+
+### `search_umkm`
+
+Cari usaha, balik `{count, rows}`.
+
+| parameter | tipe | default | arti |
+| --- | --- | --- | --- |
+| `grep` | string | — | regex, dicocokkan ke nama, produk, alamat, kecamatan |
+| `kecamatan` | string | — | nama kecamatan persis (`Bogor Barat`) |
+| `min_workers` | integer | `3` | minimal tenaga kerja |
+| `min_omset` | integer | `5000000` | minimal omset per bulan (rupiah) |
+| `sort` | string | `default` | `default`, `workers`, `omset`, `name` |
+| `limit` | integer | `20` | jumlah baris yang dikembalikan |
+
+`min_workers` dan `min_omset` bersambung dengan OR: lolos kalau salah satu terpenuhi. Isi `0` untuk
+mematikan salah satunya.
+
+Contoh hasil nyata (`grep: "kopi"`, `min_workers: 5`, `limit: 1`):
+
+```json
+{
+  "count": 10,
+  "rows": [
+    {
+      "id": 11377,
+      "name": "Mie Aceh Kurnia",
+      "kecamatan": "Tanah Sareal",
+      "alamat": "Yasmin Jl. KH. R. Abdullah Bin Nuh No.99",
+      "produk": "Mie Aceh, Kopi Aceh, Martabak aceh, Nasi goreng Aceh, Roti Cane, Teh tarik",
+      "tenaga_kerja": 7,
+      "omset_per_bulan": 90000000,
+      "koordinat": "1234567i",
+      "nib": "2410230073774"
+    }
+  ]
+}
+```
+
+Field yang selalu ada di tiap baris: `id`, `name`, `kecamatan`, `alamat`, `produk`, `tenaga_kerja`,
+`omset_per_bulan`, `koordinat`, `nib`.
+
+### `stats_umkm`
+
+Ringkasan jumlah, dipakai untuk "ada berapa usaha di tiap kecamatan".
+
+| parameter | tipe | default |
+| --- | --- | --- |
+| `min_workers` | integer | `3` |
+| `min_omset` | integer | `5000000` |
+
+```json
+{
+  "records": 10891,
+  "candidates": 430,
+  "per_kecamatan": {"Bogor Barat": 125, "Tanah Sareal": 78, "Bogor Utara": 74,
+                    "Bogor Selatan": 62, "Bogor Tengah": 47, "Bogor Timur": 44},
+  "min_workers": 3,
+  "min_omset": 5000000
+}
+```
+
+### `get_umkm`
+
+Ambil satu record berdasarkan `id` (wajib, string). Contoh: `{"id": "11377"}`. Kalau id tidak ada di
+data yang sudah difilter, balikannya error JSON-RPC `-32000`, bukan hasil kosong.
+
+Protokol yang didukung: `initialize`, `tools/list`, `tools/call`, `notifications/initialized`,
+`ping`. Tool tak dikenal dibalas `-32601`.
+
+## Fitur skill
+
+Tanpa MCP pun skill ini berguna: agent membaca `SKILL.md` lalu memakai CLI-nya sendiri.
+
+- Pencarian regex ke empat field sekaligus (nama, produk, alamat, kecamatan), tanpa peduli huruf besar/kecil
+- Filter kecamatan dan ambang skala (tenaga kerja / omset per bulan, OR; `0` mematikan ambang)
+- Urutkan berdasarkan tenaga kerja, omset, atau nama
+- Ekspor hasil ke JSON atau CSV untuk diolah di spreadsheet
+- Cache 24 jam supaya pertanyaan berikutnya instan; `--refresh` memaksa data baru
+- Rekap jumlah per kecamatan (`stats`) dan ambil satu record (`get --id`)
+- Logika filter yang sama dipakai CLI dan MCP, jadi jawaban agent dan terminal tidak pernah beda
+- `references/api.md` untuk field dan id kategori, `references/shortlist-method.md` untuk heuristik memilih mitra
+- 18 test yang mengunci filter, cache, ambang nol, protokol MCP, dan pemindaian rahasia
 
 ## Coba dulu, 2 menit
 
@@ -181,6 +267,7 @@ Diukur 2026-10-20 terhadap respons API hari itu:
 
 - Hanya Kota Bogor. Kota lain punya portal sendiri dan tidak tercakup.
 - Tanpa nomor HP, IG, atau website. Pencarian kontak tetap manual.
+- Sebagian koordinat tidak valid (contoh `1234567i`); jangan dipakai langsung untuk peta tanpa cek.
 - Tenaga kerja dan omset adalah laporan usaha ke pemkot (self-declared), bukan hasil audit.
 - Angka berubah kalau pemkot memperbarui data; `stats` selalu menunjukkan total terbaru.
 
@@ -190,4 +277,4 @@ MIT. Lihat `LICENSE`.
 
 Demo GIF di README dibuat dengan
 [remotion-product-motion](https://github.com/hamgarian/remotion-product-motion), lalu dikompres jadi
-GIF 820×461 (12 fps, 984 KB) supaya tetap autoplay di GitHub.
+GIF 820×461 (12 fps, 868 KB) supaya tetap autoplay di GitHub.
