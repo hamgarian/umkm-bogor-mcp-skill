@@ -1,6 +1,25 @@
 <p align="center"><img src="assets/logo.svg" width="96" alt=""></p>
 <h1 align="center">umkm-bogor</h1>
-<p align="center">Direktori UMKM Kota Bogor sebagai CLI dan server MCP.</p>
+<p align="center">Cari data UMKM Kota Bogor dari terminal, atau biarkan AI agent yang mencarikan.</p>
+
+## Ini apa?
+
+Pemerintah Kota Bogor punya daftar resmi 10.891 usaha kecil dan menengah di portal SOLUSI.
+Daftarnya publik, tapi bentuknya tabel web yang panjang dan isinya campur: ada baris uji coba,
+usaha yang sudah tutup, dan record tanpa alamat.
+
+Repo ini isinya dua hal:
+
+- **Satu perintah terminal** untuk mencari usaha di daftar itu berdasarkan produk, kecamatan, atau
+  skala usaha, lalu mengekspornya ke JSON/CSV.
+- **Server MCP** — protokol kecil yang membuat AI agent bisa memanggil tool — supaya Claude Code,
+  Codex, Antigravity, Cursor, atau Hermes bisa mencari sendiri tanpa kamu ketik perintah.
+
+Yang keluar: nama usaha, kecamatan, alamat, produk, jumlah tenaga kerja, omset per bulan, dan
+koordinat. Yang tidak ada di data: nomor HP, IG, atau website — itu tetap dicari manual.
+
+Cocok untuk: cari supplier, cari mitra UMKM untuk proyek kampus, riset pasar, atau cari kompetitor
+di satu kecamatan.
 
 ![Pencarian UMKM kopi dan kue lewat CLI](assets/social-preview.png)
 
@@ -17,83 +36,153 @@ $ python3 scripts/umkm_bogor.py search --grep "kopi|kue" --limit 5
 (53 = total yang cocok; `--limit 5` hanya memotong yang dicetak. Deskripsi produk dipotong di 70
 karakter, jadi baris seperti `Teh t` memang terpotong oleh tool, bukan data rusak.)
 
-## Kenapa
+## Coba dulu, 2 menit
 
-Direktori UMKM Kota Bogor tersedia di portal SOLUSI (solusi.kotabogor.go.id), halaman yang memuat
-tabelnya lewat JavaScript. Isinya campur: baris uji coba, usaha suspended, record tanpa alamat atau
-koordinat, dan sebagian besar tanpa id kategori.
-
-CLI ini menarik satu endpoint publik dari portal itu, membuang baris yang tidak bisa dipakai, dan
-menyisakan 430 dari 10.891 record pada ambang default. Yang tidak ada di dataset: nomor HP, IG,
-website — kontak tetap dicari manual, lihat `references/shortlist-method.md`.
-
-## Mulai cepat
-
-Python 3.9+, tanpa paket tambahan.
+Butuh Python 3.9+. Tidak ada paket tambahan.
 
 ```bash
 git clone https://github.com/hamgarian/umkm-bogor-mcp-skill
 cd umkm-bogor-mcp-skill
 
-# --grep menerima regex, dicocokkan ke nama, produk, alamat, dan kecamatan
 python3 scripts/umkm_bogor.py search --grep "kopi|kue" --limit 10
-python3 scripts/umkm_bogor.py search --kecamatan "Bogor Utara" --min-workers 5
-
 python3 scripts/umkm_bogor.py stats
-python3 scripts/umkm_bogor.py get --id 12345
-python3 scripts/umkm_bogor.py search --grep "batik" --json out.json
-python3 scripts/umkm_bogor.py search --grep "batik" --csv out.csv
-
-python3 -m unittest discover -s tests -v
 ```
 
-Server MCP (stdio, JSON-RPC 2.0):
+Kalau dua perintah itu keluar hasilnya, semuanya sudah jalan.
+
+## Pasang biar AI agent bisa pakai
+
+Pilih satu sesuai alat yang kamu pakai. Ganti `/path/ke/` dengan lokasi folder hasil clone
+(contoh `/home/ilham/umkm-bogor-mcp-skill`); cek dengan `pwd` di dalam folder.
+
+### Claude Code
 
 ```bash
-python3 scripts/mcp_server.py
+claude mcp add --scope user umkm-bogor -- python3 /path/ke/umkm-bogor-mcp-skill/scripts/mcp_server.py
+claude mcp get umkm-bogor
 ```
 
-Contoh pendaftaran di klien MCP:
+Perintah kedua harus menampilkan `Status: ✔ Connected`. Lalu buka Claude Code dan minta:
+"cari UMKM kopi di Bogor pakai tool umkm-bogor".
+
+### Codex CLI
+
+```bash
+codex mcp add umkm-bogor -- python3 /path/ke/umkm-bogor-mcp-skill/scripts/mcp_server.py
+codex mcp list
+```
+
+Nama `umkm-bogor` harus muncul dengan status `enabled`.
+
+### Antigravity (IDE atau CLI)
+
+Buka `~/.gemini/config/mcp_config.json` (global) atau `.agents/mcp_config.json` di folder proyek,
+lalu tambahkan:
 
 ```json
 {
   "mcpServers": {
     "umkm-bogor": {
       "command": "python3",
-      "args": ["/path/absolut/umkm-bogor/scripts/mcp_server.py"]
+      "args": ["/path/ke/umkm-bogor-mcp-skill/scripts/mcp_server.py"]
     }
   }
 }
 ```
 
-Tool: `search_umkm`, `stats_umkm`, `get_umkm`. Log keluar ke stderr supaya stdout tetap bersih.
+Simpan, lalu reload Antigravity. Kalau file itu sebelumnya kosong, paste objek di atas utuh.
+
+### Cursor
+
+Isi yang sama, filenya `~/.cursor/mcp.json`.
+
+### Client MCP lain
+
+Format `mcpServers` di atas dipakai hampir semua client. Kalau client-mu minta `.mcp.json` di root
+proyek, isi yang sama juga berlaku.
+
+### Hermes
+
+Salin foldernya jadi skill, lalu mulai sesi baru:
+
+```bash
+cp -r /path/ke/umkm-bogor-mcp-skill ~/.hermes/skills/research/umkm-bogor
+```
+
+Hermes membaca `SKILL.md` di dalamnya dan menjalankan CLI-nya sendiri. Untuk jalur MCP, jalankan
+`hermes mcp add` lalu pilih server stdio.
+
+### Pasang sebagai skill (bukan MCP)
+
+Kalau alatmu mendukung skill tapi belum tentu MCP:
+
+```bash
+# Claude Code
+mkdir -p ~/.claude/skills && cp -r /path/ke/umkm-bogor-mcp-skill ~/.claude/skills/umkm-bogor
+
+# Antigravity
+mkdir -p ~/.gemini/skills && cp -r /path/ke/umkm-bogor-mcp-skill ~/.gemini/skills/umkm-bogor
+```
+
+Bedanya: MCP memberi agent tiga tool terpisah; skill memberinya instruksi cara memakai CLI ini.
+
+## Contoh pemakaian
+
+**Cari supplier kue untuk kafe.** Minta ke agent: "pakai umkm-bogor, cari produsen kue di Bogor
+Barat dengan minimal 5 pekerja, kasih 10 nama dan alamatnya." Agent memanggil:
+
+```bash
+python3 scripts/umkm_bogor.py search --grep "kue" --kecamatan "Bogor Barat" --min-workers 5 --limit 10
+```
+
+**Shortlist mitra proyek kampus.** Butuh usaha yang cukup besar untuk diajak bikin aplikasi:
+
+```bash
+python3 scripts/umkm_bogor.py search --grep "kopi|mochi|bakso|seragam" --min-workers 5 --sort workers --limit 15
+```
+
+**Lihat sebaran usaha per kecamatan** sebelum memilih lokasi survey:
+
+```bash
+python3 scripts/umkm_bogor.py stats
+```
+
+**Ekspor ke spreadsheet** untuk diolah sendiri:
+
+```bash
+python3 scripts/umkm_bogor.py search --grep "batik|kriya" --csv kerajinan.csv
+```
 
 ## Cara kerja
 
-1. Ambil `umkm_portal` dan `umkm_table_portal` (peta kode kecamatan ke nama) dari
-   `api-solusi.kotabogor.go.id`. Endpoint ini publik, tanpa token.
-2. Cache JSON 24 jam di `$UMKM_CACHE` (default `~/.cache/umkm-bogor`); `--refresh` memaksa unduh ulang.
-3. Saring record terhapus, suspended, belum disetujui, nama/deskripsi sampah (`tes12`, `asdadsads`),
-   tanpa koordinat, atau tanpa alamat. Ini yang menyisakan 1.978 baris.
-4. Terapkan ambang: `--min-workers 3` atau `--min-omset 5000000` (omset per bulan, rupiah), semantik
-   OR — lolos kalau salah satu terpenuhi. Nilai `0` berarti ambang itu tidak dipakai, bukan
-   "semua lolos"; dengan `--min-workers 0 --min-omset 0` seluruh 1.978 baris ikut.
+1. Ambil dua endpoint publik dari `api-solusi.kotabogor.go.id`: `umkm_portal` (semua record) dan
+   `umkm_table_portal` (peta kode kecamatan ke nama). Tanpa token, tanpa login.
+2. Cache JSON 24 jam di `$UMKM_CACHE` (default `~/.cache/umkm-bogor`), jadi pertanyaan kedua instan.
+   `--refresh` memaksa unduh ulang.
+3. Buang record terhapus, suspended, belum disetujui, nama/deskripsi sampah (`tes12`, `asdadsads`),
+   tanpa koordinat, atau tanpa alamat. Sisa 1.978 baris.
+4. Terapkan ambang `--min-workers 3` atau `--min-omset 5000000` (omset per bulan, rupiah), semantik
+   OR: lolos kalau salah satu terpenuhi. Nilai `0` mematikan ambang itu, bukan "semua lolos".
 
-Rincian field dan id kategori ada di `references/api.md`.
+Rincian field dan id kategori: `references/api.md`. Heuristik memilih mitra: `references/shortlist-method.md`.
 
 ## Hasil
 
 Diukur 2026-10-20 terhadap respons API hari itu:
 
-- 10.891 record mentah → 1.978 lolos filter kualitas → 430 dengan ambang default; 1.548 sisanya
-  gugur karena tenaga kerja < 3 dan omset < 5 juta
+- 10.891 record mentah → 1.978 lolos filter kualitas → 430 pada ambang default; 1.548 gugur karena
+  tenaga kerja < 3 dan omset < 5 juta
 - 53 kandidat untuk `kopi|kue`; 13 untuk `kopi|coffee`
-- Run pertama 20–23 detik (payload 9.490.063 byte), run berikutnya 0,27–0,35 detik dari cache
+- Run pertama 20–23 detik (payload 9.490.063 byte), berikutnya 0,27–0,35 detik dari cache
 - 18 test lulus: filter, grep field produk, urutan/limit, cache, total stats, ambang nol, get,
   protokol MCP, dan pemindaian rahasia/path
 
-Batasan: hanya Kota Bogor. Angka tenaga kerja dan omset adalah laporan usaha ke pemkot
-(self-declared), bukan hasil audit.
+## Batasan
+
+- Hanya Kota Bogor. Kota lain punya portal sendiri dan tidak tercakup.
+- Tanpa nomor HP, IG, atau website. Pencarian kontak tetap manual.
+- Tenaga kerja dan omset adalah laporan usaha ke pemkot (self-declared), bukan hasil audit.
+- Angka berubah kalau pemkot memperbarui data; `stats` selalu menunjukkan total terbaru.
 
 ## Lisensi
 
