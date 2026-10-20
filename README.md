@@ -21,7 +21,7 @@ koordinat. Yang tidak ada di data: nomor HP, IG, atau website — itu tetap dica
 Cocok untuk: cari supplier, cari mitra UMKM untuk proyek kampus, riset pasar, atau cari kompetitor
 di satu kecamatan.
 
-![Pencarian UMKM kopi dan kue lewat CLI](assets/social-preview.png)
+![Demo: cari UMKM kopi dan kue lewat CLI](assets/demo.gif)
 
 ```console
 $ python3 scripts/umkm_bogor.py search --grep "kopi|kue" --limit 5
@@ -187,3 +187,7 @@ Diukur 2026-10-20 terhadap respons API hari itu:
 ## Lisensi
 
 MIT. Lihat `LICENSE`.
+
+Demo GIF di README dibuat dengan
+[remotion-product-motion](https://github.com/hamgarian/remotion-product-motion), lalu dikompres jadi
+GIF 820×461 (12 fps, 984 KB) supaya tetap autoplay di GitHub.
