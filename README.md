@@ -39,14 +39,27 @@ Tidak perlu akun, token, atau paket tambahan. Cukup Python 3.9+.
 
 <img src="assets/demo.gif" width="820" alt="Ilustrasi alur kerja di Antigravity: skill umkm-bogor aktif, agent memanggil search_umkm untuk UMKM kopi dan menampilkan 2 hasil">
 
-<sub>Ilustrasi alur kerja di Antigravity, bukan rekaman layar. Argumen <code>search_umkm</code>
-(<code>grep: "kopi"</code>, <code>min_workers: 5</code>, <code>min_omset: 0</code>, <code>limit: 5</code>)
-dan dua baris hasilnya diambil dari keluaran asli <code>scripts/mcp_server.py</code> pada cache data
-2026-10-20. Hasilmu bisa beda kalau pemkot sudah memperbarui data.</sub>
+<sub>Demo ilustrasi: cari UMKM lewat Antigravity.</sub>
 
 </div>
 
 ## Pasang di Antigravity
+
+Butuh Python 3.9+. Pilih cara paling nyaman:
+
+1. Buka chat Antigravity.
+2. Kirim prompt ini:
+
+   > Pasang skill dari https://github.com/hamgarian/umkm-bogor-mcp-skill supaya bisa dipakai di Antigravity. Baca SKILL.md dan simpan repo beserta skripnya ke folder skill yang didukung versi ini. Kalau sudah terpasang, perbarui instalasi yang ada.
+
+3. Mulai chat baru, lalu coba:
+
+   > Cari UMKM kopi di Bogor dengan minimal 5 pekerja.
+
+Suka pasang sendiri? Buka panduan berikut.
+
+<details>
+<summary><strong>Pasang manual atau hubungkan MCP</strong></summary>
 
 Antigravity adalah jalur utama. Pilih salah satu atau pasang keduanya.
 
@@ -97,6 +110,9 @@ folder yang sudah ada akan membuat folder bertumpuk, bukan menggantinya.
 
 Bedanya: MCP memberi agent tiga tool siap pakai, sedangkan skill memberi agent instruksi cara
 memakai CLI. Keduanya membaca data dan filter yang sama.
+
+
+</details>
 
 <details>
 <summary><strong>Claude Code</strong></summary>
