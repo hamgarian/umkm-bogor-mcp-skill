@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="umkm-bogor">
+  <rect width="128" height="128" rx="26" fill="#0f172a"/>
+  <path d="M64 20c-11 0-20 9-20 20 0 14 20 40 20 40s20-26 20-40c0-11-9-20-20-20Z" fill="#f59e0b"/>
+  <circle cx="64" cy="40" r="8" fill="#0f172a"/>
+  <path d="M34 92h60l-5 14H39l-5-14Z" fill="#e2e8f0"/>
+  <path d="M44 92V78h40v14" fill="none" stroke="#e2e8f0" stroke-width="6" stroke-linejoin="round"/>
+</svg>
