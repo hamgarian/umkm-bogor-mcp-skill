@@ -27,17 +27,133 @@ server MCP. Cukup Python 3.9+, tanpa akun, token, atau paket tambahan.
 
 ## Pasang di agent kamu
 
-Pakai **Antigravity, Codex, Claude Code, OpenCode, Cursor, Windsurf, GitHub Copilot, atau Hermes**?
-Salin prompt berikut ke agent yang kamu pakai. Agent akan menyesuaikan pemasangan dengan dukungan skill atau MCP di aplikasimu.
+Pilih agent kamu, lalu salin prompt di dalamnya.
 
-1. Buka chat agent kamu.
-2. Salin prompt ini ke chat:
+<details>
+<summary><strong>Antigravity</strong></summary>
+
+1. Buka chat Antigravity.
+2. Kirim prompt berikut:
 
    ```text
-   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md, lalu gunakan cara pemasangan skill atau MCP yang didukung aplikasi ini. Sertakan skrip pendukungnya. Kalau sudah terpasang, perbarui instalasi yang ada.
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
    ```
 
-3. Mulai chat baru dan coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>Codex</strong></summary>
+
+1. Buka chat Codex.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>Claude Code</strong></summary>
+
+1. Buka chat Claude Code.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>OpenCode</strong></summary>
+
+1. Buka chat OpenCode.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>Cursor</strong></summary>
+
+1. Buka chat Cursor.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>Windsurf</strong></summary>
+
+1. Buka chat Windsurf.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>GitHub Copilot</strong></summary>
+
+1. Buka chat GitHub Copilot.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>Hermes</strong></summary>
+
+1. Buka chat Hermes.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
+
+<details>
+<summary><strong>Agent lain</strong></summary>
+
+1. Buka chat agent kamu.
+2. Kirim prompt berikut:
+
+   ```text
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md dan pasang skill beserta skripnya, atau hubungkan MCP sesuai dukungan aplikasi ini. Perbarui instalasi yang ada jika sudah terpasang.
+   ```
+
+3. Mulai chat baru, lalu coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
+
+</details>
 
 <details>
 <summary><strong>Pasang manual (skill atau MCP)</strong></summary>
