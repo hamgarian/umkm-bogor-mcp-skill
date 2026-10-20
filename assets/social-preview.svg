@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="umkm-bogor — direktori UMKM Kota Bogor sebagai CLI dan server MCP">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="umkm-bogor — Cari UMKM Kota Bogor lewat AI agent">
   <rect width="1280" height="640" fill="#0f172a"/>
   <g transform="translate(96 176) scale(2.2)">
     <rect width="128" height="128" rx="26" fill="#1e293b"/>
@@ -8,6 +8,6 @@
     <path d="M44 92V78h40v14" fill="none" stroke="#e2e8f0" stroke-width="6" stroke-linejoin="round"/>
   </g>
   <text x="440" y="300" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="84" font-weight="700" fill="#f8fafc">umkm-bogor</text>
-  <text x="444" y="372" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="38" fill="#94a3b8">10.891 usaha Bogor: CLI dan server MCP</text>
-  <text x="444" y="432" font-family="ui-monospace,monospace" font-size="30" fill="#f59e0b">$ umkm_bogor.py search --grep "kopi" → 13 kandidat</text>
+  <text x="444" y="372" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="38" fill="#94a3b8">Cari UMKM lewat AI agent</text>
+  <text x="444" y="432" font-family="ui-monospace,monospace" font-size="27" fill="#f59e0b">Skill + MCP · Cari · Rekap · Ekspor</text>
 </svg>
