@@ -13,7 +13,7 @@
 [![MCP stdio: 3 tool](https://img.shields.io/badge/MCP-3_tool-5c4ee5?style=flat-square)](#tool-mcp)
 [![Rilis v1.0.0](https://img.shields.io/badge/rilis-v1.0.0-2ea44f?style=flat-square)](CHANGELOG.md)
 
-[Pasang](#pasang-di-antigravity) · [Contoh](#contoh-pakai) · [Tool](#tool-mcp) · [Fitur](#fitur) · [Batasan](#batasan) · [Referensi](#referensi)
+[Pasang](#pasang-di-agent-kamu) · [Contoh](#contoh-pakai) · [Tool](#tool-mcp) · [Fitur](#fitur) · [Batasan](#batasan) · [Referensi](#referensi)
 
 <img src="assets/demo.gif" width="820" alt="Ilustrasi Antigravity: agent memanggil search_umkm untuk UMKM kopi dan menampilkan dua hasil">
 
@@ -25,13 +25,16 @@ Minta agent kamu "cari produsen kue di Bogor Barat", lalu kamu dapat nama usaha,
 produk, tenaga kerja, omset per bulan, dan koordinat. Repo ini berisi skill (`SKILL.md` + CLI) dan
 server MCP. Cukup Python 3.9+, tanpa akun, token, atau paket tambahan.
 
-## Pasang di Antigravity
+## Pasang di agent kamu
 
-1. Buka chat Antigravity.
+Pakai **Antigravity, Codex, Claude Code, OpenCode, Cursor, Windsurf, GitHub Copilot, atau Hermes**?
+Salin prompt berikut ke agent yang kamu pakai. Agent akan menyesuaikan pemasangan dengan dukungan skill atau MCP di aplikasimu.
+
+1. Buka chat agent kamu.
 2. Salin prompt ini ke chat:
 
    ```text
-   Pasang skill dari https://github.com/hamgarian/umkm-bogor-mcp-skill supaya bisa dipakai di Antigravity. Baca SKILL.md dan simpan repo beserta skripnya ke folder skill yang didukung versi ini. Kalau sudah terpasang, perbarui instalasi yang ada.
+   Pasang https://github.com/hamgarian/umkm-bogor-mcp-skill untuk agent ini. Baca SKILL.md, lalu gunakan cara pemasangan skill atau MCP yang didukung aplikasi ini. Sertakan skrip pendukungnya. Kalau sudah terpasang, perbarui instalasi yang ada.
    ```
 
 3. Mulai chat baru dan coba: `Cari UMKM kopi di Bogor dengan minimal 5 pekerja.`
